@@ -19,6 +19,8 @@
 Your browser does not support the format
 </video>
 
+<!-- ss/record_gol.mp4 -->
+
 <img src="ss/Screenshot0.png">
 <img src="ss/Screenshot1.png">
 <img src="ss/Screenshot2.png">
