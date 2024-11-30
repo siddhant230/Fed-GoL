@@ -12,3 +12,13 @@
 2. Write a CRON job to fetch latest uploaded file by any active user and perform GoL(image -> dith -> state).
 3. Maybe make a GUI to provide upload functionalities.
 ```
+
+## current results
+<video width="640" height="360" controls>
+<source src="ss/record_gol.mp4" type="video/mp4">
+Your browser does not support the format
+</video>
+
+<img src="ss/Screenshot0.png">
+<img src="ss/Screenshot1.png">
+<img src="ss/Screenshot2.png">
