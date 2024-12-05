@@ -2,7 +2,7 @@
 // cleaner code, only dithering based
 
 let stick_image;
-files = ["cube.jpg", "chair.jpg", "rocket.jpg", "kitten.jpg", "ferrari.jpg"]
+files = ["rembg_cube.png", "rembg_chair.png", "rembg_rocket.png", "rembg_kitten.png", "rembg_ferrari.png"]
 let all_images = []
 let uploaded_image;
 let generation = 0;
@@ -11,14 +11,15 @@ let grid;
 let cols;
 let rows;
 let resolution = 5;
-let N = 50; //patch image size
+let N = 100; //patch image size
 let frame_rate = 5;
-
+let CANVAS_SIZE = 2500;
 const generationTxt = document.getElementById('generation');
 const aliveTxt = document.getElementById('alive');
 const deathsTxt = document.getElementById('death');
 const birthsTxt = document.getElementById('birth');
 const buttons = document.getElementById('buttons');
+const selected_mode = document.getElementById('color-mode');
 
 function preload() {
     for (let i = 0; i < files.length; i++) {
@@ -65,8 +66,8 @@ function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            loadImage(e.target.result, function(img) {
+        reader.onload = function (e) {
+            loadImage(e.target.result, function (img) {
                 uploaded_image = img;
                 console.log("Image uploaded successfully");
             });
@@ -77,7 +78,7 @@ function handleFileUpload(event) {
 }
 
 function init_canvas() {
-    createCanvas(2000, 2000);
+    createCanvas(CANVAS_SIZE, CANVAS_SIZE);
     cols = width / resolution;
     rows = height / resolution;
 
@@ -103,21 +104,46 @@ function clear_upload(event) {
     document.getElementById('fileName').textContent = 'No file chosen';
 }
 
+function assign_color(num_neighbors) {
+    let mode = selected_mode.value;
+    document.getElementById('current-mode').textContent = "running in " + mode + " mode";
+
+    if (mode == "matrix") {
+        return [0, 255 / num_neighbors, 0];
+    }
+    else if (mode == "white-fade") {
+        return [255 / num_neighbors, 255 / num_neighbors, 255 / num_neighbors];
+    }
+    else if (mode == "color") {
+        if (num_neighbors == 0 || num_neighbors == 1) {
+            return [0, 255, 0];
+        }
+        else if (num_neighbors == 2) {
+            return [255, 255, 0];
+        }
+        else if (num_neighbors == 3) {
+            return [255, 0, 0];
+        }
+        else {
+            return [0, 0, 0];
+        }
+    }
+}
 
 function setup() {
     init_canvas()
-   
+
     const fileInput = document.getElementById('fileInput');
     fileInput.addEventListener('change', handleFileUpload);
 
     const clearBtn = document.getElementById('clearUpload')
-    clearBtn.addEventListener('click', clear_upload );
-    
+    clearBtn.addEventListener('click', clear_upload);
+
     const restartBtn = document.getElementById('restart')
     restartBtn.addEventListener('click', restart);
 
     const increaseBtn = document.getElementById('increaseSpeed')
-    increaseBtn.addEventListener('click', increasee_speed);
+    increaseBtn.addEventListener('click', increase_speed);
 
     const decreaseBtn = document.getElementById('decreaseSpeed')
     decreaseBtn.addEventListener('click', decrease_speed);
@@ -134,23 +160,29 @@ function draw() {
         for (let j = 0; j < rows; j++) {
             let x = i * resolution;
             let y = j * resolution;
+            let num_neighbors = countNeighbors(grid, i, j);
+
+            let r = 0;
+            let g = 0;
+            let b = 0;
             if (grid[i][j] == 1) {
+                let [r, g, b] = assign_color(num_neighbors);
+                fill(r, g, b);
                 alive++;
-                fill(255);
-                stroke(0);
                 rect(x, y, resolution - 1, resolution - 1);
             }
         }
     }
 
     let next = make2DArray(cols, rows);
-
+    let sum = 0;
     // Compute next based on grid
     for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
             let state = grid[i][j];
             // Count live neighbors!
-            let sum = 0;
+
+            sum = sum + state;
             let neighbors = countNeighbors(grid, i, j);
 
             if (state == 0 && neighbors == 3) {
@@ -167,8 +199,10 @@ function draw() {
     }
 
     grid = next;
-    generation++;
-   
+    if (sum != 0) {
+        generation++;
+    }
+
     generationTxt.textContent = str(generation) + " Generations";
     aliveTxt.textContent = str(alive) + " Alive";
     deathsTxt.textContent = str(deaths) + " Deaths";
@@ -177,7 +211,7 @@ function draw() {
     frameRate(frame_rate);
 }
 
-function increasee_speed() {
+function increase_speed() {
     if (frame_rate < 15) {
         frame_rate++;
     }

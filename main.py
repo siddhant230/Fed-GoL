@@ -6,7 +6,10 @@ import shutil
 from datetime import datetime, timedelta, UTC
 from typing import Tuple
 
+from img_processor import remove_background
+
 API_NAME = "game_of_life"
+
 
 def network_participants(datasite_path: Path):
     """
@@ -61,7 +64,7 @@ def get_latest_images(
         tracker_folder: Path = (
             datasites_path / peer / "api_data" / API_NAME / "images"
         )
-        dest_path = "./images" 
+        dest_path = "./images"
 
         # Skip if the tracker folder does not exist
         if not tracker_folder.exists():
@@ -71,13 +74,15 @@ def get_latest_images(
 
         # Iterate over files in the tracker folder and select image files
         for file in tracker_folder.glob("*"):
+            preprocessed_file = remove_background(file)
             if file.suffix.lower() in image_extensions:
-                shutil.copy(file, Path(dest_path) / file.name)
+                shutil.copy(preprocessed_file, Path(dest_path) / file.name)
 
     return active_peers
 
+
 def should_run() -> bool:
-    INTERVAL = 60 # 60 seconds
+    INTERVAL = 60  # 60 seconds
     timestamp_file = f"./script_timestamps/{API_NAME}_last_run"
     os.makedirs(os.path.dirname(timestamp_file), exist_ok=True)
     now = datetime.now().timestamp()
@@ -100,14 +105,14 @@ if __name__ == "__main__":
     if not should_run():
         print(f"Skipping {API_NAME}, not enough time has passed.")
         exit(0)
-        
+
     client = Client.load()
 
     # Create input folder for the current user
     image_input_path = client.datasite_path / "api_data" / API_NAME / "images"
     os.makedirs(image_input_path, exist_ok=True)
 
-    # Fetch all new added images 
+    # Fetch all new added images
     peers = network_participants(client.datasite_path.parent)
 
     get_latest_images(client.datasite_path.parent, peers)

@@ -19,6 +19,9 @@ function induct_state(stick_image, sx = -1, sy = -1) {
     }
     for (let i = sx; i < sx + N; i++) {
         for (let j = sy; j < sy + N; j++) {
+            if (patch[i - sx][j - sy] == 0) {
+                continue;
+            }
             grid[i][j] = patch[i - sx][j - sy];
         }
     }
@@ -30,7 +33,7 @@ function image_state(stick_image, N) {
     stick_image.filter(GRAY);
 
     // edge_image = make_edge_map(stick_image);
-    edge_image = makeDithered(stick_image, 2);
+    edge_image = makeDithered(stick_image, 1);
 
     image_matrix = make2DArray(N, N);
     // Iterate over the image pixels as a matrix
