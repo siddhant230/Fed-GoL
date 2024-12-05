@@ -6,11 +6,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <meta charset="utf-8" />
 
 </head>
 
 <body>
+    <div id="buttons">
+        <label for="fileInput" class="custom-file-upload">
+            Choose File
+        </label>
+        <span id="fileName" class="file-name">No file chosen</span>
+        <input type="file" id="fileInput" accept="image/*">
+        <button id="clearUpload" class="custom-file-upload">
+            <span class=reload>&#120;</span>
+        </button>
+        <button id="restart" class="custom-file-upload">
+            <span class=reload>&#x21bb;</span>
+        </button>
+        <button id="decreaseSpeed" class="custom-file-upload">
+            <span class=reload>&#9198;</span>
+        </button>
+        <button id="increaseSpeed" class="custom-file-upload">
+            <span class=reload>&#9197;</span>
+        </button>
+    </div>
+    <ul id="stats" align="bottom">
+        <li id="generation">0 Generations</li>
+        <li id="alive">0 Alive</li>
+        <li id="birth">0 Births</li>
+        <li id="death">0 Deaths</li>
+    </ul>
     <script src="img_util.js"></script>
     <script src="dithering.js"></script>
     <script src="sketch.js"></script>
