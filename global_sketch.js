@@ -10,7 +10,7 @@ let generation = 0;
 let grid;
 let cols;
 let rows;
-let resolution = 10;
+let resolution = 5;
 let N = 100; //patch image size
 let frame_rate = 5;
 let CANVAS_SIZE = 2500;
@@ -18,7 +18,7 @@ const generationTxt = document.getElementById('generation');
 const aliveTxt = document.getElementById('alive');
 const deathsTxt = document.getElementById('death');
 const birthsTxt = document.getElementById('birth');
-const buttons = document.getElementById('buttons');
+// const buttons = document.getElementById('buttons');
 const selected_mode = document.getElementById('color-mode');
 
 function preload() {
@@ -27,64 +27,22 @@ function preload() {
     }
 }
 
-function save_data(image_name, sx, sy) {
-    // TODO
-    console.log('saving')
-    event_data = image_name + "||" + sx + "||" + sy;
-}
+function new_entry() {
 
-function mousePressed() {
-    if (isMouseOverButton()) {
-        return;
-    }
-
-    let sx = int(mouseX / resolution);
-    let sy = int(mouseY / resolution);
+    let sx = int(random(0, CANVAS_SIZE / resolution));
+    let sy = int(random(0, CANVAS_SIZE / resolution));
 
     if (uploaded_image) {
         stick_image = uploaded_image
     }
     else {
-        let idx = int(random(0, all_images.length));
-        stick_image = all_images[idx];
-        let image_name = files[idx];
-        save_data(image_name, sx, sy);
+        stick_image = random(all_images);
     }
-    induct_state(stick_image, sx - N / 2, sy - N / 2); // from centre
+    sx = max(0, sx - N / 2);
+    sy = max(0, sy - N / 2)
+    induct_state(stick_image, sx, sy); // from centre
 }
 
-
-function isMouseOverButton() {
-    let rect = buttons.getBoundingClientRect();
-    let canvasRect = canvas.getBoundingClientRect();
-    let adjustedMouseX = mouseX + canvasRect.left;
-    let adjustedMouseY = mouseY + canvasRect.top;
-
-    if (
-        adjustedMouseX >= rect.left &&
-        adjustedMouseX <= rect.right &&
-        adjustedMouseY >= rect.top &&
-        adjustedMouseY <= rect.bottom
-    ) {
-        return true;
-    }
-    return false;
-}
-
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            loadImage(e.target.result, function (img) {
-                uploaded_image = img;
-                console.log("Image uploaded successfully");
-            });
-        }
-        reader.readAsDataURL(file);
-        document.getElementById('fileName').textContent = file.name;
-    }
-}
 
 function init_canvas() {
     createCanvas(CANVAS_SIZE, CANVAS_SIZE);
@@ -104,13 +62,6 @@ function restart(event) {
     clear();
 
     init_canvas();
-}
-
-
-function clear_upload(event) {
-    console.log("Clearing image");
-    uploaded_image = NaN
-    document.getElementById('fileName').textContent = 'No file chosen';
 }
 
 function assign_color(num_neighbors) {
@@ -141,15 +92,6 @@ function assign_color(num_neighbors) {
 
 function setup() {
     init_canvas()
-
-    const fileInput = document.getElementById('fileInput');
-    fileInput.addEventListener('change', handleFileUpload);
-
-    const clearBtn = document.getElementById('clearUpload')
-    clearBtn.addEventListener('click', clear_upload);
-
-    const restartBtn = document.getElementById('restart')
-    restartBtn.addEventListener('click', restart);
 
     const increaseBtn = document.getElementById('increaseSpeed')
     increaseBtn.addEventListener('click', increase_speed);
@@ -208,10 +150,10 @@ function draw() {
     }
 
     grid = next;
-    if (sum != 0) {
-        generation++;
-    }
-
+    // if (sum != 0) {
+    //     generation++;
+    // }
+    generation++;
     generationTxt.textContent = str(generation) + " Generations";
     aliveTxt.textContent = str(alive) + " Alive";
     deathsTxt.textContent = str(deaths) + " Deaths";
@@ -219,6 +161,9 @@ function draw() {
 
     frameRate(frame_rate);
     //saveCanvas("canvas", "png");
+    if (generation % 10 == 0) {
+        new_entry();
+    }
 }
 
 function increase_speed() {
