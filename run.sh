@@ -12,11 +12,11 @@ is_process_running() {
     local pid=$1
     if [ -n "$pid" ] && ps -p "$pid" > /dev/null 2>&1; then
         # Also verify it's our Flask app
-        if ps -p "$pid" -o command= | grep -q "ython main.py"; then
-            return 0  # Process is running
+        if ps -p "$pid" -o command= | grep -q "python main.py"; then
+            return 1  # Process is running
         fi
     fi
-    return 1  # Process is not running
+    return 0  # Process is not running
 }
 
 

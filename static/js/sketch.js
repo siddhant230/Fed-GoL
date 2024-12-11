@@ -41,9 +41,9 @@ function save_data(image_name, sx, sy) {
             sy: sy
         })
     })
-    .then(response => response.json())
-    .then(data => console.log('Data saved:', data))
-    .catch(error => console.error('Error saving data:', error));    
+        .then(response => response.json())
+        .then(data => console.log('Data saved:', data))
+        .catch(error => console.error('Error saving data:', error));
 }
 
 function mousePressed() {
@@ -97,33 +97,33 @@ function handleFileUpload(event) {
         // Create FormData object to send file
         const formData = new FormData();
         formData.append('file', file);
-        
+
         fetch('/upload_image', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log("File uploaded successfully");
-            
-            // After successful upload, load the image for display
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                loadImage(e.target.result, function(img) {
-                    uploaded_image = img;
-                    uploaded_path = file.name;
-                    console.log("Image loaded successfully for display");
-                });
-            };
-            reader.onerror = function(e) {
-                console.error("Error reading file:", e);
-            };
-            reader.readAsDataURL(file);
-        })
-        .catch(error => {
-            console.error('Error uploading file:', error);
-            document.getElementById('fileName').textContent = 'Upload failed: ' + file.name;
-        });
+            .then(response => response.json())
+            .then(data => {
+                console.log("File uploaded successfully");
+
+                // After successful upload, load the image for display
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    loadImage(e.target.result, function (img) {
+                        uploaded_image = img;
+                        uploaded_path = file.name;
+                        console.log("Image loaded successfully for display");
+                    });
+                };
+                reader.onerror = function (e) {
+                    console.error("Error reading file:", e);
+                };
+                reader.readAsDataURL(file);
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                document.getElementById('fileName').textContent = 'Upload failed: ' + file.name;
+            });
     }
 }
 

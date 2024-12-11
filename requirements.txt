@@ -3,3 +3,4 @@ onnxruntime
 syftbox
 flask
 apscheduler
+flask_cors
