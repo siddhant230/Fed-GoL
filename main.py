@@ -56,12 +56,18 @@ def upload_image():
         return jsonify({'error': 'No selected file'}), 400
         
     if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join('static/images', filename)
+        try:
+            filename = secure_filename(file.filename)
+            output = Image.open(file)        
+            output = remove(output)
+            
+            filename = os.path.splitext(filename)[0] + ".png"
+            path = os.path.join('static/images', filename)
+            output.save(path)
+
+        except Exception as e:
+            return jsonify({'error': 'Loading and processing the file, failed', 'filename': filename})
         
-        input_image = Image.open(file)
-        output = remove(input_image)
-        output.save(filepath)
         load_images("static/images", IMAGE_INPUT_PATH)
 
         return jsonify({'success': True, 'filename': filename})

@@ -4,7 +4,6 @@
 let stick_image;
 files = ["rembg_cube.png", "rembg_chair.png", "rembg_rocket.png", "rembg_kitten.png", "rembg_ferrari.png"]
 let all_images = []
-let uploaded_image;
 let uploaded_path;
 let generation = 0;
 
@@ -54,13 +53,10 @@ function mousePressed() {
     let sx = int(mouseX / resolution);
     let sy = int(mouseY / resolution);
 
-    if (uploaded_image) {
-        stick_image = uploaded_image
-        path = "./static/images/" + uploaded_path
-
-        // Add it to the list of images
-        files.push(uploaded_path)
-        all_images.push(loadImage(path));
+    if (uploaded_path){
+        path = "./static/images/" + uploaded_path;
+        stick_image = all_images.at(-1);
+        uploaded_path = NaN;
     }
     else {
         let idx = int(random(0, all_images.length));
@@ -92,12 +88,11 @@ function isMouseOverButton() {
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        document.getElementById('fileName').textContent = file.name;
-
         // Create FormData object to send file
         const formData = new FormData();
         formData.append('file', file);
-        
+        document.getElementById('fileName').textContent = "Uploading..";
+
         fetch('/upload_image', {
             method: 'POST',
             body: formData
@@ -106,24 +101,22 @@ function handleFileUpload(event) {
         .then(data => {
             console.log("File uploaded successfully");
             
-            // After successful upload, load the image for display
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                loadImage(e.target.result, function(img) {
-                    uploaded_image = img;
-                    uploaded_path = file.name;
-                    console.log("Image loaded successfully for display");
-                });
-            };
-            reader.onerror = function(e) {
-                console.error("Error reading file:", e);
-            };
-            reader.readAsDataURL(file);
+            const filename = data.filename;
+            files.push(filename)
+
+            const path = "./static/images/" + filename;
+            console.log("Uploading image for display", path);
+
+            img = loadImage(path)
+            all_images.push(img);
+            uploaded_path = filename;
+            document.getElementById('fileName').textContent = uploaded_path;
+            console.log("Image loaded successfully for display");
         })
         .catch(error => {
             console.error('Error uploading file:', error);
             document.getElementById('fileName').textContent = 'Upload failed: ' + file.name;
-        });
+        });            
     }
 }
 
@@ -150,7 +143,7 @@ function restart(event) {
 
 function clear_upload(event) {
     console.log("Clearing image");
-    uploaded_image = NaN
+    uploaded_path = NaN
     document.getElementById('fileName').textContent = 'No file chosen';
 }
 
