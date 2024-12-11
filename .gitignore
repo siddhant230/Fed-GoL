@@ -3,3 +3,7 @@ test.js
 logs/
 __pycache__/
 .DS_Store
+
+
+nohup.out
+pid.txt

@@ -1,118 +1,105 @@
 from pathlib import Path
-from syftbox.lib import Client
-import os
-import json
 import shutil
-from datetime import datetime, timedelta, UTC
+from PIL import Image
+from flask import Flask, request, jsonify, send_from_directory, render_template
+import os
+from rembg import remove
+
+from syftbox.lib import Client, SyftPermission
+import os
+from datetime import datetime, timezone
 from typing import Tuple
 
 from img_processor import remove_background
+from werkzeug.utils import secure_filename
+
+app = Flask(__name__)
 
 API_NAME = "game_of_life"
+AGGREGATOR_DATASITE = "irina@openmined.org"
+OUTPUT_PATH = ""
+IMAGE_INPUT_PATH = ""
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory('static/images', filename)
+
+@app.route('/save_data', methods=['POST'])
+def save_data():
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    event_file: Path = OUTPUT_PATH / "event.txt"
+    try:
+        image_name = data['image_name']
+        sx = data['sx']
+        sy = data['sy']
+        with open(event_file, 'a') as f:
+            f.write(f"{image_name},{sx},{sy},{datetime.now().strftime('%Y%m%d_%H%M%S')}\n")
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
-def network_participants(datasite_path: Path):
-    """
-    Retrieves a list of user directories (participants) in a given datasite path.
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join('static/images', filename)
+        
+        input_image = Image.open(file)
+        output = remove(input_image)
+        output.save(filepath)
+        load_images("static/images", IMAGE_INPUT_PATH)
 
-    Args:
-        datasite_path (Path): The path to the datasite directory containing user subdirectories.
-
-    Returns:
-        list: A list of strings representing the names of the user directories present in the datasite path.
-
-    Example:
-        If the datasite_path contains the following directories:
-        - datasite/user1/
-        - datasite/user2/
-        Then the function will return:
-        ['user1', 'user2']
-    """
-    # Get all entries in the specified datasite path
-    entries = os.listdir(datasite_path)
-
-    # Initialize an empty list to store user directory names
-    users = []
-
-    # Iterate through each entry and add to users list if it's a directory
-    for entry in entries:
-        if Path(datasite_path / entry).is_dir():
-            users.append(entry)
-
-    # Return the list of user directories
-    return users
+        return jsonify({'success': True, 'filename': filename})
+    
+    return jsonify({'error': 'File upload failed'}), 400
 
 
-def get_latest_images(
-    datasites_path: Path, peers: list[str]
-) -> Tuple[float, list[str]]:
-    """
-    Get the latest images from the specified peers.
-
-    Args:
-        datasites_path (Path): The path to the datasites directory.
-        peers (list[str]): A list of peers to gather images from.
-
-    Returns:
-        Tuple[float, list[str]]: A tuple containing the execution time and a list of active peers.
-
-    """
-    active_peers = []
-    # Iterate over each peer to gather any available images
-    for peer in peers:
-        # Construct the path to the folder where images are stored
-        tracker_folder: Path = (
-            datasites_path / peer / "api_data" / API_NAME / "images"
-        )
-        dest_path = "./images"
-
-        # Skip if the tracker folder does not exist
-        if not tracker_folder.exists():
-            continue
-
-        image_extensions = {".jpg", ".jpeg", ".png"}
-
-        # Iterate over files in the tracker folder and select image files
-        for file in tracker_folder.glob("*"):
-            preprocessed_file = remove_background(file)
-            if file.suffix.lower() in image_extensions:
-                shutil.copy(preprocessed_file, Path(dest_path) / file.name)
-
-    return active_peers
+@app.route('/health')
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({'status': 'healthy'}), 200
 
 
-def should_run() -> bool:
-    INTERVAL = 60  # 60 seconds
-    timestamp_file = f"./script_timestamps/{API_NAME}_last_run"
-    os.makedirs(os.path.dirname(timestamp_file), exist_ok=True)
-    now = datetime.now().timestamp()
-    time_diff = INTERVAL  # default to running if no file exists
-    if os.path.exists(timestamp_file):
-        try:
-            with open(timestamp_file, "r") as f:
-                last_run = int(f.read().strip())
-                time_diff = now - last_run
-        except (FileNotFoundError, ValueError):
-            print(f"Unable to read timestamp file: {timestamp_file}")
-    if time_diff >= INTERVAL:
-        with open(timestamp_file, "w") as f:
-            f.write(f"{int(now)}")
-        return True
-    return False
+def create_restricted_public_folder(events_path: Path) -> None:
+    os.makedirs(events_path, exist_ok=True)
 
+    # Set default permissions for the created folder
+    permissions = SyftPermission.datasite_default(email=client.email)
+    permissions.read.append(AGGREGATOR_DATASITE)
+    permissions.save(events_path)
+
+
+def load_images(from_path, to_path):
+    for file in os.listdir(from_path):
+        src = os.path.join(from_path, file)
+        shutil.copy2(src, to_path)
 
 if __name__ == "__main__":
-    if not should_run():
-        print(f"Skipping {API_NAME}, not enough time has passed.")
-        exit(0)
-
     client = Client.load()
 
     # Create input folder for the current user
-    image_input_path = client.datasite_path / "api_data" / API_NAME / "images"
-    os.makedirs(image_input_path, exist_ok=True)
+    IMAGE_INPUT_PATH = client.datasite_path / "api_data" / API_NAME / "images"
+    create_restricted_public_folder(IMAGE_INPUT_PATH)
+    load_images("static/images", IMAGE_INPUT_PATH)
 
-    # Fetch all new added images
-    peers = network_participants(client.datasite_path.parent)
+    print(IMAGE_INPUT_PATH)
 
-    get_latest_images(client.datasite_path.parent, peers)
+    OUTPUT_PATH = client.datasite_path / "api_data" / API_NAME / "events"
+    create_restricted_public_folder(OUTPUT_PATH)
+
+    app.run(debug=False, port=8090) 
