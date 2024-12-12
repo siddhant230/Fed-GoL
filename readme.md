@@ -31,6 +31,8 @@ If no, watch this [Game of Life](https://www.youtube.com/watch?v=R9Plq-D1gEk).
 Now, that you are ready to dive, behold another surprise. Ever wondered what would happen if images are states for GoL?
 Welcome to the Federated version of famous Conways game of life. This is a federated playground where you can interact with available peers in creating beautiful Game-of-life states and see them unfold across time. We add an additional feature on top of conventional GoL, instead of states being random, you can use any image as a state guided by mouse-clicks for positional placements.
 
+<img src="UI_visuals/rules.png">
+
 ## Features
 
 - **Decentralized Architecture**: Eliminates dependency on a central server; every participant runs the API locally.
@@ -55,6 +57,8 @@ Each participant's SyftBox directory structure includes:
 - _**`events/`**_: Folder where the API writes the generated events.
 
 ### API Operation Cycle
+
+<img src="UI_visuals/flow.png">
 
 #### For LOCAL GoL (interactive and visual)
 
