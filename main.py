@@ -14,10 +14,10 @@ from typing import Tuple
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:8090"}})
+CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:8091"}})
 
 API_NAME = "fed_gol"
-AGGREGATOR_DATASITE = "irina@openmined.org"
+AGGREGATOR_DATASITE = "irinam.bejan@gmail.com"
 OUTPUT_PATH = ""
 IMAGE_INPUT_PATH = ""
 
@@ -109,9 +109,7 @@ if __name__ == "__main__":
     create_restricted_public_folder(IMAGE_INPUT_PATH)
     load_images("static/images", IMAGE_INPUT_PATH)
 
-    print(IMAGE_INPUT_PATH)
-
     OUTPUT_PATH = client.datasite_path / "api_data" / API_NAME / "events"
     create_restricted_public_folder(OUTPUT_PATH)
 
-    app.run(debug=False, port=8090)
+    app.run(debug=False, port=8091)
