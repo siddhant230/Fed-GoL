@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 VENV_DIR=".venv"
-PORT=8090
+PORT=8091
 PID_FILE="pid.txt"
 
 
